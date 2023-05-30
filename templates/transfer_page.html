@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image to HTML Converter</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>Image style transfer</h1>
+    <form id="conversionForm" action="/" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" required><br/>
+        <input type="text" id="epoch" name="epoch" required pattern="[0-9]+" style="width: 40px;"><br/>
+        <select id="lang">
+            <option value="javascript">JavaScript</option>
+            <option value="php">PHP</option>
+            <option value="java">Java</option>
+            <option value="golang">Golang</option>
+            <option value="python">Python</option>
+            <option value="c#">C#</option>
+            <option value="C++">C++</option>
+            <option value="erlang">Erlang</option>
+            </select><br/>
+        <input type="submit" value="Convert">
+    </form>
+
+    <!-- Loading animation -->
+    <div id="loader" class="loader" style="display: none;"></div>
+
+    {% if img_base64 %}
+        <h2>Converted Image:</h2>
+        <img src="data:image/png;base64,{{ img_base64 }}">
+    {% endif %}
+</body>
+</html>
+<script src="js/java.js"></script>
