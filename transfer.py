@@ -3,19 +3,24 @@ from tensorflow.python.keras import models
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import IPython.display
-from tqdm import tqdm
 from PIL import Image
 import numpy as np
 
-
-def load_file(image_path):
+def load_file(image_path, size_wrap):
     image = Image.open(image_path)
-    # max_dim = 1080
-    max_dim = 512
-    factor = max_dim / max(image.size)
-    image = image.resize((round(image.size[0] * factor), round(image.size[1] * factor)), Image.ANTIALIAS)
-    # if type(image_path)!=str: image = np.flipud(image) #Bandymas
-    im_array = process_im.img_to_array(image)
+    new_size = size_wrap
+    img_size_base = image.size[1]/image.size[0]
+
+    if size_wrap == 1080:
+        img_size_x = image.size[0]
+        img_size_y = image.size[1]
+    else:
+        img_size_x=int(new_size)
+        img_size_y=int(new_size*img_size_base)
+
+    image_resized = image.resize((img_size_x, img_size_y))
+
+    im_array = process_im.img_to_array(image_resized)
     im_array = np.expand_dims(im_array, axis=0)
     return im_array
 
@@ -30,8 +35,8 @@ def show_im(img, title=None):
     plt.imshow(np.uint8(img))
 
 
-def img_preprocess(img_path):
-    image = load_file(img_path)
+def img_preprocess(img_path, size_wrap):
+    image = load_file(img_path, size_wrap)
     img = tf.keras.applications.vgg19.preprocess_input(image)
     return img
 
@@ -89,9 +94,9 @@ def get_style_loss(noise, target):
     return loss
 
 
-def get_features(model, content_path, style_path):
-    content_img = img_preprocess(content_path)
-    style_image = img_preprocess(style_path)
+def get_features(model, content_path, style_path, size_wrap):
+    content_img = img_preprocess(content_path, size_wrap)
+    style_image = img_preprocess(style_path, size_wrap)
     content_output = model(content_img)
     style_output = model(style_image)
     content_feature = [layer[0] for layer in content_output[number_style:]]
@@ -124,14 +129,15 @@ def compute_grads(dictionary):
     total_loss = all_loss[0]
     return tape.gradient(total_loss, dictionary['image']), all_loss
 
-
-def run_style_transfer(content_path, style_path, epochs=500, content_weight=1e3, style_weight=1e1):
+import time
+def run_style_transfer(size_wrap, content_path, style_path, epochs, content_weight=1e5, style_weight=1):
+    start = time.time()
     model = get_model()
     for layer in model.layers:
         layer.trainable = False
-    content_feature, style_feature = get_features(model, content_path, style_path)
+    content_feature, style_feature = get_features(model, content_path, style_path, size_wrap)
     style_gram_matrix = [gram_matrix(feature) for feature in style_feature]
-    noise = img_preprocess(content_path)
+    noise = img_preprocess(content_path, size_wrap)
     noise = tf.Variable(noise, dtype=tf.float32)
     optimizer = tf.keras.optimizers.Adam(learning_rate=5, beta_1=0.99, epsilon=1e-1)
     loss_weights = (style_weight, content_weight)
@@ -144,10 +150,7 @@ def run_style_transfer(content_path, style_path, epochs=500, content_weight=1e3,
     min_vals = -norm_means
     max_vals = 255 - norm_means
 
-    progress_bar = tqdm(range(epochs), desc="Style Transfer Progress")
-    # progress_bar = tqdm(range(epochs), desc="Style Transfer Progress", leave=False, position=0)
-
-    for i in progress_bar:
+    for epoch in range(epochs):
         grad, all_loss = compute_grads(dictionary)
         total_loss, style_loss, content_loss = all_loss
         optimizer.apply_gradients([(grad, noise)])
@@ -156,8 +159,11 @@ def run_style_transfer(content_path, style_path, epochs=500, content_weight=1e3,
         plot_img = noise.numpy()
         plot_img = deprocess_img(plot_img)
         trans_img = Image.fromarray(plot_img)
-        progress_bar.set_postfix({"Total Loss": total_loss.numpy(), "Style Loss": style_loss.numpy(),
-                                  "Content Loss": content_loss.numpy()})
+        print(f"Epoch:{epoch+1}; Total loss:{total_loss}; Style loss:{style_loss}; Content loss:{content_loss}")
 
-    IPython.display.clear_output(wait=True)
+        IPython.display.clear_output(wait=True)
+    end = time.time()
+    print(f"Total time: {end - start}")
+    print(f'{Image.open(content_path).size[0]}x{Image.open(content_path).size[1]}')
+
     return trans_img

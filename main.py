@@ -13,14 +13,11 @@ def index():
     if request.method == 'POST':
         # Get the uploaded image
         image = request.files['image']
-        # epoch = request.files['epoch']
         epoch = request.values['epoch']
-        # Open the image using Pillow
-        print(f'epochos: {epoch}')
-        img = transfer.run_style_transfer(image, "images/style2.jpeg", epochs=int(epoch))
-        print(f'image request type{type(image)}')
-        # img = Image.open(img_convert)
-        # Convert the image to HTML
+        style = request.values['style']
+        size_wrap = request.values['size_wrap']
+        print(f'Size: {size_wrap}; Epochos: {epoch}; Style: {style}')
+        img = transfer.run_style_transfer(int(size_wrap), image, style, epochs=int(epoch))
         img_data = io.BytesIO()
         img.save(img_data, format='PNG')
         img_data.seek(0)

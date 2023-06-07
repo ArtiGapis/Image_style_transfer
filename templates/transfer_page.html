@@ -1,34 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="https://fonts.googleapis.com/css?family=Fredericka+the+Great|Orbitron:900" rel="stylesheet">
+
     <title>Image to HTML Converter</title>
-    <link rel="stylesheet" href="css/style.css">
+        <style>
+            .loader {
+                border: 16px solid #f3f3f3;
+                border-top: 16px solid #3498db;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                animation: spin 2s linear infinite;
+                margin: 0 auto;
+            }
+
+            input, select {
+                margin-bottom: 10px;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            text{
+                color: white;
+            }
+            h1 {
+                font-family: 'Fredericka the Great', cursive;
+            }
+    </style>
+    <script>
+         document.addEventListener('DOMContentLoaded', function () {
+        var form = document.getElementById('conversionForm');
+        form.addEventListener('submit', function () {
+            var loader = document.getElementById('loader');
+            loader.style.display = 'block';
+            });
+        });
+    </script>
 </head>
 <body>
-    <h1>Image style transfer</h1>
-    <form id="conversionForm" action="/" method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" required><br/>
-        <input type="text" id="epoch" name="epoch" required pattern="[0-9]+" style="width: 40px;"><br/>
-        <select id="lang">
-            <option value="javascript">JavaScript</option>
-            <option value="php">PHP</option>
-            <option value="java">Java</option>
-            <option value="golang">Golang</option>
-            <option value="python">Python</option>
-            <option value="c#">C#</option>
-            <option value="C++">C++</option>
-            <option value="erlang">Erlang</option>
+    <div class="page_body">
+        <h1 style="color: black">Image style transfer</h1>
+        <form id="conversionForm" action="/" method="POST" enctype="multipart/form-data">
+            <text>Choose your photo</text>
+            <input type="file" name="image" required><br/>
+            <text>Select the number of epochs</text>
+            <input type="text" id="epoch" name="epoch" required pattern="[0-9]+" style="width: 40px;"><br/>
+            <text>Choose a photo style</text>
+            <select id="style" name="style">
+                <option value="images/van_gogh_style.jpg">Van Gogh starry night</option>
+                <option value="images/grey_pencil_style.jpg">Gray pencil style</option>
+                <option value="images/watercolor_style.jpg">Watercolor style</option>
+                <option value="images/cropped_drawing.jpg">Cropped drawing</option>
+                <option value="images/hole_in_the_stone.jpg">A hole in the stone</option>
+                <option value="images/wavy_armor.jpg">Wavy armor</option>
+                <option value="images/patern_1.jpg">Patern 1</option>
+                <option value="images/patern_2.jpg">Patern 2</option>
+                <option value="images/patern_3.jpg">Patern 3</option>
+                <option value="images/patern_4.jpg">Patern 4</option>
             </select><br/>
-        <input type="submit" value="Convert">
-    </form>
+            <text>Select the height of the photo you want to receive</text>
+            <select id="size_wrap" name="size_wrap">
+                <option value=224>224</option>
+                <option value=512>512</option>
+                <option value=1080>Original size</option>
+            </select><br/>
+            <text>Choose a photo style</text>
+            <input type="submit" value="Convert">
+        </form>
+        <text>* </text>
+        <!-- Loading animation -->
+        <div id="loader" class="loader" style="display: none;"></div>
 
-    <!-- Loading animation -->
-    <div id="loader" class="loader" style="display: none;"></div>
+        {% if img_base64 %}
+            <h2>Converted Image:</h2>
+            <img src="data:image/png;base64,{{ img_base64 }}">
+        {% endif %}
+    </div>
 
-    {% if img_base64 %}
-        <h2>Converted Image:</h2>
-        <img src="data:image/png;base64,{{ img_base64 }}">
-    {% endif %}
 </body>
 </html>
-<script src="js/java.js"></script>
